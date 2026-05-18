@@ -19,7 +19,7 @@ export default function TriagePage() {
     setLoading(true);
     try {
       const res = await triageApi.getAll();
-      setData(res.data || { high: [], medium: [], low: [] });
+      setData(res.data?.data || res.data || { high: [], medium: [], low: [] });
     } catch (err) {
       console.error('Failed to fetch triage:', err);
     } finally {
