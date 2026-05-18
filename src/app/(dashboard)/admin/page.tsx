@@ -35,6 +35,8 @@ export default function AdminPanel() {
     setLoading(true);
     try {
       await Promise.all([fetchPositions(), fetchApplications(), fetchUsers()]);
+    } catch (err) {
+      console.error('Error loading admin dashboard data:', err);
     } finally {
       setLoading(false);
     }
@@ -43,16 +45,19 @@ export default function AdminPanel() {
   const fetchPositions = async () => {
     try {
       const res = await positionsApi.getAll();
-      setPositions(res.data || []);
+      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      setPositions(res.data.data || []);
     } catch (err) {
       console.error('Failed to fetch positions:', err);
+      setPositions([]);
     }
   };
 
   const fetchApplications = async () => {
     try {
       const res = await triageApi.getAll();
-      const data: TriageData = res.data || { high: [], medium: [], low: [] };
+      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      const data: TriageData = res.data.data || { high: [], medium: [], low: [] };
       const flat: Application[] = [
         ...(data.high || []).map((a) => ({ ...a, triageLevel: 'high' as const })),
         ...(data.medium || []).map((a) => ({ ...a, triageLevel: 'medium' as const })),
@@ -61,15 +66,18 @@ export default function AdminPanel() {
       setApplications(flat);
     } catch (err) {
       console.error('Failed to fetch applications:', err);
+      setApplications([]);
     }
   };
 
   const fetchUsers = async () => {
     try {
       const res = await usersApi.getAll();
-      setUsers(res.data || []);
+      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      setUsers(res.data.data || []);
     } catch (err) {
       console.error('Failed to fetch users:', err);
+      setUsers([]);
     }
   };
 
@@ -99,6 +107,9 @@ export default function AdminPanel() {
     try {
       await usersApi.deleteUser(id);
       await fetchUsers();
+      // ইউজার ডিলিট হলে তার সাথে রিলেটেড ডেটাও রি-ফেচ করা নিরাপদ
+      await fetchPositions();
+      await fetchApplications();
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Failed to delete user');
     }
@@ -161,7 +172,7 @@ export default function AdminPanel() {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <Spinner size={28} />
+              <Spinner />
             </div>
           ) : (
             <>

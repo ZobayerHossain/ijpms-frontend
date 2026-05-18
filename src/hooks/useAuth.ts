@@ -19,7 +19,7 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
-    const { access_token, user } = res.data;
+    const { access_token, user } = res.data.data;
     saveAuth(access_token, user);
     setUser(user);
     return user;
@@ -27,7 +27,7 @@ export function useAuth() {
 
   const register = async (name: string, email: string, password: string, role: string) => {
     const res = await authApi.register(name, email, password, role);
-    const { access_token, user } = res.data;
+    const { access_token, user } = res.data.data;
     saveAuth(access_token, user);
     setUser(user);
     return user;

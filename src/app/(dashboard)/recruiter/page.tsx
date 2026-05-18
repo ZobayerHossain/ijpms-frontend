@@ -64,6 +64,8 @@ export default function RecruiterDashboard() {
     setLoadingData(true);
     try {
       await Promise.all([fetchPositions(), fetchAllApplications()]);
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
     } finally {
       setLoadingData(false);
     }
@@ -72,20 +74,21 @@ export default function RecruiterDashboard() {
   const fetchPositions = async () => {
     try {
       const res = await positionsApi.getAll();
-      const all: Position[] = res.data || [];
+      const all: Position[] = res.data.data || [];
       const mine = user
         ? all.filter((p) => !p.recruiter || p.recruiter.id === user.id)
         : all;
       setPositions(mine);
     } catch (err) {
       console.error('Failed to fetch positions:', err);
+      setPositions([]);
     }
   };
 
   const fetchAllApplications = async () => {
     try {
       const res = await triageApi.getAll();
-      const data: TriageData = res.data || { high: [], medium: [], low: [] };
+      const data: TriageData = res.data.data || { high: [], medium: [], low: [] };
       const flat: Application[] = [
         ...(data.high || []).map((a) => ({ ...a, triageLevel: 'high' as TriageLevel })),
         ...(data.medium || []).map((a) => ({ ...a, triageLevel: 'medium' as TriageLevel })),
@@ -94,6 +97,7 @@ export default function RecruiterDashboard() {
       setApplications(flat);
     } catch (err) {
       console.error('Failed to fetch applications:', err);
+      setApplications([]);
     }
   };
 
@@ -130,7 +134,8 @@ export default function RecruiterDashboard() {
       await positionsApi.delete(id);
       await fetchPositions();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete position');
+      // যদি ফরেন কি এরর আসে, ব্যাকএন্ড মেসেজটি ইউজারের সামনে সুন্দরভাবে অ্যালার্ট করবে
+      alert(err?.response?.data?.message || 'Failed to delete position. Ensure there are no active applications.');
     }
   };
 
@@ -216,7 +221,7 @@ export default function RecruiterDashboard() {
 
           {loadingData ? (
             <div className="flex justify-center py-20">
-              <Spinner size={28} />
+              <Spinner />
             </div>
           ) : (
             <>
@@ -299,13 +304,13 @@ export default function RecruiterDashboard() {
                   {positions.length === 0 ? (
                     <Card>
                       <Empty message="You haven't posted any positions yet." />
-                      <div className="flex justify-center">
+                      <div className="flex justify-center mt-4">
                         <Button onClick={() => setActiveTab('post')}>
                           Post Your First Position
                         </Button>
                       </div>
                     </Card>
-                  ) : (
+                  ) : Array.isArray(positions) ? (
                     positions.map((position) => {
                       const apps = appsForPosition(position.id);
                       const isExpanded = expandedId === position.id;
@@ -432,6 +437,8 @@ export default function RecruiterDashboard() {
                         </Card>
                       );
                     })
+                  ) : (
+                    <div className="text-red-500">Invalid positions data structure.</div>
                   )}
                 </div>
               )}

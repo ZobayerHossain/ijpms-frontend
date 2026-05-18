@@ -24,9 +24,11 @@ export default function ApplicantDashboard() {
   const loadPositions = useCallback(async () => {
     try {
       const res = await positionsApi.getAll();
-      setPositions(res.data);
+      // NestJS ইন্টারসেপ্টরের রেসপন্স থেকে মূল অ্যারেটি আনপ্যাক করা হচ্ছে
+      setPositions(res.data.data || []);
     } catch {
       /* ignore */
+      setPositions([]);
     } finally {
       setLoadingPos(false);
     }
@@ -35,9 +37,11 @@ export default function ApplicantDashboard() {
   const loadMyApps = useCallback(async () => {
     try {
       const res = await applicationsApi.getMyApplications();
-      setMyApps(res.data);
+      // NestJS ইন্টারসেপ্টরের রেসপন্স থেকে মূল অ্যারেটি আনপ্যাক করা হচ্ছে
+      setMyApps(res.data.data || []);
     } catch {
       /* ignore */
+      setMyApps([]);
     } finally {
       setLoadingApps(false);
     }
@@ -150,7 +154,7 @@ export default function ApplicantDashboard() {
                 </div>
               ) : positions.length === 0 ? (
                 <Empty message="No open positions right now" />
-              ) : (
+              ) : Array.isArray(positions) ? (
                 positions.map((pos) => (
                   <Card key={pos.id} className="hover:border-[#2e2e42] transition-colors">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -197,6 +201,8 @@ export default function ApplicantDashboard() {
                     </div>
                   </Card>
                 ))
+              ) : (
+                <div className="text-red-500 text-sm text-center">Invalid jobs data format.</div>
               )}
             </div>
           )}
@@ -210,7 +216,7 @@ export default function ApplicantDashboard() {
                 </div>
               ) : myApps.length === 0 ? (
                 <Empty message="You haven't applied to any position yet" />
-              ) : (
+              ) : Array.isArray(myApps) ? (
                 myApps.map((app) => (
                   <Card key={app.id} className="hover:border-[#2e2e42] transition-colors">
                     <div className="flex items-start justify-between gap-4">
@@ -245,6 +251,8 @@ export default function ApplicantDashboard() {
                     </div>
                   </Card>
                 ))
+              ) : (
+                <div className="text-red-500 text-sm text-center">Invalid applications data format.</div>
               )}
             </div>
           )}
