@@ -134,7 +134,7 @@ export default function RecruiterDashboard() {
       await positionsApi.delete(id);
       await fetchPositions();
     } catch (err: any) {
-      // যদি ফরেন কি এরর আসে, ব্যাকএন্ড মেসেজটি ইউজারের সামনে সুন্দরভাবে অ্যালার্ট করবে
+      // backend might return 400 if there are active applications, so we can show that message instead of a generic one
       alert(err?.response?.data?.message || 'Failed to delete position. Ensure there are no active applications.');
     }
   };

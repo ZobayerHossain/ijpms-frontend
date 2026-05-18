@@ -24,7 +24,7 @@ export default function ApplicantDashboard() {
   const loadPositions = useCallback(async () => {
     try {
       const res = await positionsApi.getAll();
-      // NestJS ইন্টারসেপ্টরের রেসপন্স থেকে মূল অ্যারেটি আনপ্যাক করা হচ্ছে
+      // NestJS interceptor response to unwrap the actual array of positions
       setPositions(res.data.data || []);
     } catch {
       /* ignore */
@@ -37,7 +37,7 @@ export default function ApplicantDashboard() {
   const loadMyApps = useCallback(async () => {
     try {
       const res = await applicationsApi.getMyApplications();
-      // NestJS ইন্টারসেপ্টরের রেসপন্স থেকে মূল অ্যারেটি আনপ্যাক করা হচ্ছে
+      // NestJS interceptor response to unwrap the actual array of applications
       setMyApps(res.data.data || []);
     } catch {
       /* ignore */

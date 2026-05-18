@@ -45,7 +45,7 @@ export default function AdminPanel() {
   const fetchPositions = async () => {
     try {
       const res = await positionsApi.getAll();
-      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      // NestJS data unwapping
       setPositions(res.data.data || []);
     } catch (err) {
       console.error('Failed to fetch positions:', err);
@@ -56,7 +56,7 @@ export default function AdminPanel() {
   const fetchApplications = async () => {
     try {
       const res = await triageApi.getAll();
-      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      // NestJS data unwapping
       const data: TriageData = res.data.data || { high: [], medium: [], low: [] };
       const flat: Application[] = [
         ...(data.high || []).map((a) => ({ ...a, triageLevel: 'high' as const })),
@@ -73,7 +73,7 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     try {
       const res = await usersApi.getAll();
-      // NestJS রেসপন্স ইন্টারসেপ্টর থেকে ডাটা আনপ্যাক করা হলো
+      // NestJS data unwapping
       setUsers(res.data.data || []);
     } catch (err) {
       console.error('Failed to fetch users:', err);
@@ -107,7 +107,7 @@ export default function AdminPanel() {
     try {
       await usersApi.deleteUser(id);
       await fetchUsers();
-      // ইউজার ডিলিট হলে তার সাথে রিলেটেড ডেটাও রি-ফেচ করা নিরাপদ
+      // if user is deleted, we should also refresh positions and applications to reflect that change (e.g. if recruiter is deleted, their name should disappear from positions)
       await fetchPositions();
       await fetchApplications();
     } catch (err: any) {
