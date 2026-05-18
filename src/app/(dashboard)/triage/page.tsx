@@ -27,7 +27,7 @@ export default function TriagePage() {
     }
   };
 
-  const total = data.high.length + data.medium.length + data.low.length;
+ const total = (data?.high?.length || 0) + (data?.medium?.length || 0) + (data?.low?.length || 0);
 
   const renderColumn = (
     apps: Application[],

@@ -14,7 +14,17 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    if (
+      res.data &&
+      typeof res.data === 'object' &&
+      'success' in res.data &&
+      'data' in res.data
+    ) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
