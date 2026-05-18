@@ -96,7 +96,9 @@ JWT token is automatically attached to every request via Axios interceptor.
 ---
 
 ## 📁 Project Structure
-...
+## 📁 Project Structure
+
+```text
 src/
 ├── app/
 │   ├── login/                      → Authentication landing screen
@@ -112,8 +114,8 @@ src/
 │   └── ui/                         → Reusable Inputs, Buttons, Badges, Modals
 ├── hooks/                          → Custom authentication hook collections
 ├── lib/                            → Interceptor setups (api.ts, auth.ts)
-└── types/                          → Strict global TypeScript data contract interfaces
-...
+└── types/                          → Strict global TypeScript data contracts
+```
 
 ---
 
