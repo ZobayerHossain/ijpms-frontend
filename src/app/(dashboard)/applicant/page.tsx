@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import RouteGuard from '@/components/layout/RouteGuard';
 import { Button, Card, Badge, StatusBadge, Spinner, Empty } from '@/components/ui';
+import ApplyModal from '@/components/ui/ApplyModal'; // Imported the new ApplyModal component
 import { positionsApi, applicationsApi } from '@/lib/api';
 import { Position, Application } from '@/types';
 import { Briefcase, Building2, Calendar, CheckCircle, X } from 'lucide-react';
@@ -13,7 +14,10 @@ export default function ApplicantDashboard() {
   const [tab, setTab] = useState<'browse' | 'applied'>('browse');
   const [loadingPos, setLoadingPos] = useState(true);
   const [loadingApps, setLoadingApps] = useState(true);
-  const [applying, setApplying] = useState<string | null>(null);
+  
+  // Tracking modal visibility and current active job record selection states
+  const [selectedJob, setSelectedJob] = useState<Position | null>(null);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [toast, setToast] = useState('');
 
   const showToast = (msg: string) => {
@@ -24,10 +28,8 @@ export default function ApplicantDashboard() {
   const loadPositions = useCallback(async () => {
     try {
       const res = await positionsApi.getAll();
-      // NestJS interceptor response to unwrap the actual array of positions
       setPositions(res.data.data || []);
     } catch {
-      /* ignore */
       setPositions([]);
     } finally {
       setLoadingPos(false);
@@ -37,10 +39,8 @@ export default function ApplicantDashboard() {
   const loadMyApps = useCallback(async () => {
     try {
       const res = await applicationsApi.getMyApplications();
-      // NestJS interceptor response to unwrap the actual array of applications
       setMyApps(res.data.data || []);
     } catch {
-      /* ignore */
       setMyApps([]);
     } finally {
       setLoadingApps(false);
@@ -52,20 +52,19 @@ export default function ApplicantDashboard() {
     loadMyApps();
   }, [loadPositions, loadMyApps]);
 
-  // Application has eager-loaded `position` object, not `positionId`
   const appliedIds = new Set(myApps.map((a) => a.position?.id).filter(Boolean) as string[]);
 
-  const handleApply = async (positionId: string) => {
-    setApplying(positionId);
-    try {
-      await applicationsApi.apply(positionId);
-      showToast('Application submitted!');
-      loadMyApps();
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to apply');
-    } finally {
-      setApplying(null);
-    }
+  // Intercepting and packaging the explicit modal form inputs into the API transport layer
+  const handleApplySubmit = async (modalData: { resumeUrl: string; githubUrl: string; coverLetter: string }) => {
+    if (!selectedJob) return;
+    
+    // Submitting positionId alongside application metadata variables
+    await applicationsApi.apply(selectedJob.id, {
+      ...modalData
+    });
+    
+    showToast('Application submitted successfully!');
+    loadMyApps(); // Sync view lists state post-operation
   };
 
   const handleWithdraw = async (id: string) => {
@@ -79,7 +78,6 @@ export default function ApplicantDashboard() {
     }
   };
 
-  // Backend status values are lowercase
   const inReviewCount = myApps.filter((a) => a.status === 'pending').length;
   const canWithdraw = (status: string) => status === 'pending';
 
@@ -191,8 +189,10 @@ export default function ApplicantDashboard() {
                         ) : (
                           <Button
                             size="sm"
-                            loading={applying === pos.id}
-                            onClick={() => handleApply(pos.id)}
+                            onClick={() => {
+                              setSelectedJob(pos); // Mark target job selection context
+                              setIsApplyModalOpen(true); // Open the submission form view interface
+                            }}
                           >
                             Apply Now
                           </Button>
@@ -258,6 +258,20 @@ export default function ApplicantDashboard() {
           )}
         </div>
       </div>
+
+      {/* Conditionally rendering the input collection popup handler at root level */}
+      {selectedJob && (
+        <ApplyModal
+          isOpen={isApplyModalOpen}
+          onClose={() => {
+            setIsApplyModalOpen(false);
+            setSelectedJob(null);
+          }}
+          onSubmit={handleApplySubmit}
+          positionTitle={selectedJob.title}
+          positionCompany={selectedJob.company}
+        />
+      )}
     </RouteGuard>
   );
 }

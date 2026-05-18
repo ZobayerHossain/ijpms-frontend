@@ -47,15 +47,17 @@ export const applicationsApi = {
   getMyApplications: () => api.get('/applications/mine'),
   getByPosition: (positionId: string) =>
     api.get(`/applications/position/${positionId}`),
-  apply: (positionId: string, coverLetter?: string) =>
-    api.post('/applications', { positionId, coverLetter }),
+  
+  // Updated to accept the data object argument and spread it inside the body payload
+  apply: (positionId: string, data?: { resumeUrl?: string; githubUrl?: string; coverLetter?: string }) =>
+    api.post('/applications', { positionId, ...data }),
+    
   withdraw: (id: string) => api.delete(`/applications/${id}`),
   updateStatus: (id: string, status: string) =>
     api.patch(`/applications/${id}/result`, { status }),
   updateScore: (id: string, interviewScore: number) =>
     api.patch(`/applications/${id}/result`, { interviewScore }),
 };
-
 export const triageApi = {
   getAll: () => api.get('/applications/triage'),
 };

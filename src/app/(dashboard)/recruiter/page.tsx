@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { positionsApi, triageApi } from '@/lib/api';
 import api from '@/lib/api';
+import { FileText, Globe, MessageSquare } from 'lucide-react'; // Added icons for the new candidate fields
 import {
   Position,
   Application,
@@ -134,7 +135,6 @@ export default function RecruiterDashboard() {
       await positionsApi.delete(id);
       await fetchPositions();
     } catch (err: any) {
-      // backend might return 400 if there are active applications, so we can show that message instead of a generic one
       alert(err?.response?.data?.message || 'Failed to delete position. Ensure there are no active applications.');
     }
   };
@@ -153,7 +153,7 @@ export default function RecruiterDashboard() {
         notes: rf.notes,
       });
       await fetchAllApplications();
-      alert('Result saved!');
+      alert('Result saved successfully!');
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Failed to update result');
     }
@@ -366,9 +366,10 @@ export default function RecruiterDashboard() {
                                   return (
                                     <div
                                       key={app.id}
-                                      className="bg-[#0a0a0f] border border-[#1e1e2e] rounded-lg p-4"
+                                      className="bg-[#0a0a0f] border border-[#1e1e2e] rounded-lg p-4 space-y-4"
                                     >
-                                      <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+                                      {/* Applicant Meta Information Grid */}
+                                      <div className="flex items-start justify-between gap-3 flex-wrap">
                                         <div className="min-w-0">
                                           <p className="font-medium text-[#e8e8f0] truncate">
                                             {app.applicant?.fullName ?? 'Applicant'}
@@ -385,7 +386,58 @@ export default function RecruiterDashboard() {
                                         </div>
                                       </div>
 
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                      {/* NEW SECTION: Candidate Submitted Submissions Tracking Details Display */}
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#111118] border border-[#1e1e2e] rounded-xl">
+                                        <div>
+                                          <p className="text-[11px] font-medium text-[#8888aa] mb-1.5 flex items-center gap-1.5">
+                                            <FileText size={13} className="text-[#22d3a0]" /> Resume / Curriculum Vitae
+                                          </p>
+                                          {app.resumeUrl ? (
+                                            <a 
+                                              href={app.resumeUrl} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center text-xs text-[#22d3a0] hover:underline bg-[#22d3a0]/5 px-2.5 py-1.5 rounded-lg border border-[#22d3a0]/10 font-medium transition-all"
+                                            >
+                                              View Submitted Resume &rarr;
+                                            </a>
+                                          ) : (
+                                            <span className="text-xs text-[#444455] italic">No document links attached</span>
+                                          )}
+                                        </div>
+
+                                        <div>
+                                          <p className="text-[11px] font-medium text-[#8888aa] mb-1.5 flex items-center gap-1.5">
+                                            <Globe size={13} className="text-[#7c6af7]" /> Portfolio / GitHub Repository
+                                          </p>
+                                          {app.githubUrl ? (
+                                            <a 
+                                              href={app.githubUrl} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center text-xs text-[#7c6af7] hover:underline bg-[#7c6af7]/5 px-2.5 py-1.5 rounded-lg border border-[#7c6af7]/10 font-medium transition-all"
+                                            >
+                                              Open Developer Link &rarr;
+                                            </a>
+                                          ) : (
+                                            <span className="text-xs text-[#444455] italic">No portfolio targets linked</span>
+                                          )}
+                                        </div>
+
+                                        {app.coverLetter && (
+                                          <div className="sm:col-span-2 mt-1 pt-2.5 border-t border-[#1e1e2e]">
+                                            <p className="text-[11px] font-medium text-[#8888aa] mb-1 flex items-center gap-1.5">
+                                              <MessageSquare size={13} className="text-[#8888aa]" /> Applicant Pitch & Cover Letter
+                                            </p>
+                                            <div className="bg-[#0a0a0f] rounded-lg p-2.5 text-xs text-[#e8e8f0] whitespace-pre-wrap leading-relaxed border border-[#1a1a26]">
+                                              {app.coverLetter}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Evaluation Score Form Selectors Inputs */}
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <Select
                                           label="Status"
                                           value={rf.status}
@@ -415,7 +467,7 @@ export default function RecruiterDashboard() {
                                         />
                                       </div>
 
-                                      <div className="mb-3">
+                                      <div>
                                         <Textarea
                                           label="Notes"
                                           rows={2}
